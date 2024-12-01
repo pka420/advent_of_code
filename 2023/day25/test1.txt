@@ -1,0 +1,13 @@
+cmg: qnr nvd lhk
+frs: qnr lhk lsr
+rsh: frs pzl lsr
+pzl: lsr nvd
+qnr: nvd
+nvd: lhk
+lsr: lhk
+rzs: qnr cmg lsr rsh
+jqt: rhn xhk
+xhk: hfx
+rhn: xhk bvb hfx
+ntq: jqt hfx bvb xhk
+bvb: xhk hfx
