@@ -1,7 +1,6 @@
 #!/opt/local/bin/perl
 use Text::CSV_XS;
 
-
 my $csv = Text::CSV_XS->new({ sep_char => ',' });
 my $file = 'input.csv';
 open my $fh, '<', $file or die "Could not open '$file': $!";
