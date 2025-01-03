@@ -2,7 +2,7 @@
 use strict;
 use warnings;
 
-my $filename = 'sample.txt';
+my $filename = 'input.txt';
 open(my $fh, '<', $filename) or die "Could not open file '$filename': $!";
 
 my @nums;
@@ -20,7 +20,7 @@ my $k = 0;
 for my $i (0 .. $#nums) {
     if ($i%2 == 0) {
         for my $j ( 1 .. $nums[$i]) {
-            push @nums2, $k;
+            push @nums2, sprintf("%d", $k);
         }
         $k++;
     } else {
@@ -29,8 +29,6 @@ for my $i (0 .. $#nums) {
         }
     }
 }
-print join("", @nums2), "\n";
-print("\n");
 
 sub part1 {
 	my $checksum=0;
@@ -66,11 +64,46 @@ sub part1 {
 
 sub part2 {
 	my $checksum=0;
+    my $i = scalar(@nums2) - 1;
+    my $num = $nums2[$i];
+    my $max_left = scalar(@nums2) - 1 ;
+    while ($num > 0) {
+        my $left = 0;
+        my $num_count = 0;
+        my ($right) = grep { $nums2[$_] eq $num } 0..$#nums2;
+        my $temp_right = $right;
+        while($temp_right <= $#nums2 && $nums2[$temp_right] eq $num) {
+            $temp_right++;
+            $num_count++;
+        }
+        while($left < $max_left){
+            my $dot_count = 0;
+            while($nums2[$left] ne '.') {
+                $left++;
+            }
+            my $temp_left = $left;
+            if ( $left >= $right) {
+                $max_left = $left;
+                last;
+            }
+            while($nums2[$temp_left] eq '.') {
+                $dot_count++;
+                $temp_left++;
+            }
 
-    my $left = 0;
-    my $right = scalar(@nums2) - 1;
-
-    while ($left < $right) {
+            if ( $dot_count >= $num_count) {
+                while($num_count>0) {
+                    $nums2[$left] = $num;
+                    $nums2[$right] = '.';
+                    $num_count--;
+                    $right++;
+                    $left++;
+                }
+                last;
+            }
+            $left+=$dot_count;
+        }
+        $num--;
     }
 
     print join("", @nums2), "\n";
@@ -78,7 +111,7 @@ sub part2 {
 
     for my $i (0 .. $#nums2) {
         if ( $nums2[$i] eq '.') {
-            last;
+            next;
         }
         $checksum = $checksum + $nums2[$i]*$i
     }
