@@ -1,0 +1,8 @@
+guard at 6, 4 
+found loop at 6, 3 
+found loop at 7, 6 
+found loop at 7, 7 
+found loop at 8, 1 
+found loop at 8, 3 
+found loop at 9, 7 
+Part 2: 6

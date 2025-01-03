@@ -1,21 +1,20 @@
 #!/opt/local/bin/perl
 use strict;
 use warnings;
-
-my $filename = 'sample.txt';
+my $filename = 'input.txt';
 open(my $fh, '<', $filename) or die "Could not open file '$filename': $!";
 
 my @map;
 my @guard;
 my $symbol = '^';
-my $flag = 0; #flag that guard is done.
+my $flag = 0;
 
 while (my $line = <$fh>) {
     chomp $line;
     my @list = split //, $line;
     my @index = grep { $list[$_] eq $symbol } 0..$#list;
     if ( @index ) {
-        push @guard, $#map;
+        push @guard, $#map+1;
         push @guard, @index;
     }
     push @map, \@list;
@@ -25,17 +24,17 @@ close $fh;
 
 
 sub calc_next_pos {
-    my ($symbol, @guard) = @_;
+    my ($symbol, @cur_position) = @_;
     if ( $symbol eq '^') {
-        $guard[0] = $guard[0] - 1;
+        $cur_position[0] = $cur_position[0] - 1;
     } elsif ( $symbol eq '>') {
-        $guard[1] = $guard[1] + 1;
+        $cur_position[1] = $cur_position[1] + 1;
     } elsif ( $symbol eq '<') {
-        $guard[1] = $guard[1] - 1;
+        $cur_position[1] = $cur_position[1] - 1;
     } else {
-        $guard[0] = $guard[0] + 1;
+        $cur_position[0] = $cur_position[0] + 1;
     }
-    return @guard;
+    return @cur_position;
 }
 sub calc_next_symbol {
     my ($symbol) = @_;
@@ -52,10 +51,32 @@ sub calc_next_symbol {
     return $next_symbol;
 }
 
+sub check_loop {
+    my @cur_pos = @guard;
+    my $symbol = $map[$cur_pos[0]][$cur_pos[1]];
+    my $flag = 0;
+    my $iterations = 0;
+    while ($flag != 1 && $iterations<100000) {
+        my @next_pos = calc_next_pos($symbol, @cur_pos);
+        if ($next_pos[0] < 0 || $next_pos[0] > $#map ||
+            $next_pos[1] < 0 || $next_pos[1] > $#{$map[0]} ) {
+            $flag = 1; #exit
+        }
+        elsif ($map[$next_pos[0]][$next_pos[1]] eq '#') {
+            $symbol = calc_next_symbol($symbol);
+        } else {
+            @cur_pos = @next_pos;
+        }
+        $iterations++;
+    }
+    return $flag;
+}
+
 sub part1 {
+    my @cur_pos = @guard;
     while ($flag != 1) {
-        $map[$guard[0]][$guard[1]] = 'X';
-        my @next_pos = calc_next_pos($symbol, @guard);
+        $map[$cur_pos[0]][$cur_pos[1]] = 'X';
+        my @next_pos = calc_next_pos($symbol, @cur_pos);
         if ($next_pos[0] < 0 || $next_pos[0] > $#map ||
             $next_pos[1] < 0 || $next_pos[1] > $#{$map[0]} ) {
             $flag = 1;
@@ -63,14 +84,14 @@ sub part1 {
         elsif ($map[$next_pos[0]][$next_pos[1]] eq '#') {
             $symbol = calc_next_symbol($symbol);
         } else {
-            @guard = @next_pos;
+            @cur_pos = @next_pos;
         }
     }
 
     my $count = 0;
     for my $i (0 .. $#map) {
         for my $j (0 .. $#{$map[$i]}) {
-            print($map[$i][$j], " ");
+            print($map[$i][$j]);
             if ( $map[$i][$j] eq 'X') {
                 $count++;
             }
@@ -83,9 +104,12 @@ sub part1 {
 
 sub part2 {
     $flag=0;
+    my $count = 0;
+    my %seen;
+    my @cur_pos = @guard;
     while ($flag != 1) {
-        $map[$guard[0]][$guard[1]] = 'X';
-        my @next_pos = calc_next_pos($symbol, @guard);
+        $seen{"$cur_pos[0],$cur_pos[1]"} = 0;
+        my @next_pos = calc_next_pos($symbol, @cur_pos);
         if ($next_pos[0] < 0 || $next_pos[0] > $#map ||
             $next_pos[1] < 0 || $next_pos[1] > $#{$map[0]} ) {
             $flag = 1;
@@ -93,23 +117,22 @@ sub part2 {
         elsif ($map[$next_pos[0]][$next_pos[1]] eq '#') {
             $symbol = calc_next_symbol($symbol);
         } else {
-            @guard = @next_pos;
+            @cur_pos = @next_pos;
         }
     }
-
-    my $count = 0;
-    for my $i (0 .. $#map) {
-        for my $j (0 .. $#{$map[$i]}) {
-            print($map[$i][$j], " ");
-            if ( $map[$i][$j] eq 'X') {
-                $count++;
-            }
+    delete $seen{"$guard[0],$guard[1]"};
+    print("guard at $guard[0], $guard[1] \n");
+    foreach my $key (sort keys %seen) {
+        my ($x, $y) = split /,/, $key;
+        $map[$x][$y] = '#';
+        my $result = check_loop();
+        if ($result == 0) {
+            #print("found loop at $x, $y \n");
+            $count++;
         }
-        print("\n");
+        $map[$x][$y] = '.';
     }
-
     print("Part 2: ", $count, "\n");
 }
 
-
-part1();
+part2();
