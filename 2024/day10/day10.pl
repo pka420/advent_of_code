@@ -42,56 +42,56 @@ sub get_paths {
             }
         }
     }
-    #print("num paths: ", $num_paths, "\n");
     return $num_paths;
 }
 
-sub get_ratings {
-    my ($start_x, $start_y, $visited_ref, $rating ) = @_;
-    my %visited = %$visited_ref;
-    if ($map[$start_x][$start_y] == 9) {
-        $rating++;
-    }
-
-    $visited{"$start_x,$start_y"} = 1;
-
-    for my $dir (@directions) {
-        my ($dx, $dy) = @$dir;
-        my ($new_x, $new_y) = ($start_x + $dx, $start_y + $dy);
-        if ($new_x >= 0 && $new_x <= $#map &&
-            $new_y >= 0 && $new_y <= $#{$map[0]} &&
-            !$visited{"$new_x,$new_y"} &&
-            ($map[$new_x][$new_y] - $map[$start_x][$start_y] == 1)
-        ) {
-            $rating = get_ratings($new_x, $new_y, \%visited, $rating);
+sub part1 {
+    my $sum = 0;
+    for my $i (0 .. $#map) {
+        for my $j (0 .. $#{$map[$i]}) {
+            if ($map[$i][$j] == 0) {
+                $sum += get_paths($i, $j);
+            }
         }
     }
-    print("rating: ", $rating, "\n");
+    print("part1: $sum \n");
+}
+
+part1();
+
+sub get_ratings {
+    my ($start_x, $start_y) = @_;
+    my @queue = ( [$start_x, $start_y] );
+
+    my $rating = 0;
+
+    while (@queue) {
+        my ($x, $y) = @{shift @queue};
+        $rating++ if $map[$x][$y] == 9;
+        for my $dir (@directions) {
+            my ($dx, $dy) = @$dir;
+            my ($new_x, $new_y) = ($x + $dx, $y + $dy);
+            if ($new_x >= 0 && $new_x <= $#map &&
+                $new_y >= 0 && $new_y <= $#{$map[0]} &&
+                ($map[$new_x][$new_y] - $map[$x][$y] == 1)
+            ) {
+                push @queue, [$new_x, $new_y];
+            }
+        }
+    }
     return $rating;
 }
 
-my $sum = 0;
-# for my $i (0 .. $#map) {
-# 	for my $j (0 .. $#{$map[$i]}) {
-#         if ($map[$i][$j] == 0) {
-#             $sum += get_paths($i, $j);
-#         }
-# 	}
-# }
+sub part2 {
+    my $sum = 0;
+    for my $i (0 .. $#map) {
+        for my $j (0 .. $#{$map[$i]}) {
+            if ($map[$i][$j] == 0) {
+                $sum += get_ratings($i, $j);
+            }
+        }
+    }
+    print("part2: ", $sum, "\n");
+}
 
-
-my %visited;
-my $rating = 0;
-my $result = get_ratings(0, 2, \%visited, $rating);
-print("rating: ", $result, "\n");
-# for my $i (0 .. $#map) {
-# 	for my $j (0 .. $#{$map[$i]}) {
-#         if ($map[$i][$j] == 0) {
-#             last;
-#         }
-# 	}
-# }
-
-
-
-print("sum : ", $sum, "\n");
+part2();
